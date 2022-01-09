@@ -1,0 +1,6 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs/EFCoreRelationship/v17/.suo
+/.vs/EFCoreRelationship/project-colors.json
