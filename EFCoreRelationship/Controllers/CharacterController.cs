@@ -1,12 +1,16 @@
 ﻿using EFCoreRelationship.DTO.Character;
 using EFCoreRelationship.Services.Interface;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace EFCoreRelationship.Controllers
 {
+    [Authorize(Roles = "Player")]
     [Route("api/[controller]")]
-    [ApiController]
+    [ApiController] 
     public class CharacterController : ControllerBase
     {
         private readonly ICharacterService _characterService;
@@ -19,6 +23,7 @@ namespace EFCoreRelationship.Controllers
         [HttpGet("GetAll")]
         public async Task<IActionResult> Get()
         {
+            int userId = int.Parse(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value);
             return Ok(await _characterService.GetAllCharacter());
         }
 

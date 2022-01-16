@@ -1,10 +1,14 @@
 ﻿using AutoMapper;
+using EFCoreRelationship.Data;
 using EFCoreRelationship.DTO.Character;
 using EFCoreRelationship.Models;
 using EFCoreRelationship.Services.Interface;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace EFCoreRelationship.Services
@@ -17,25 +21,41 @@ namespace EFCoreRelationship.Services
             new Character() { Id =1, Name = "Cool" }
         };
         private readonly IMapper _mapper;
+        private readonly DataContext _dataContext;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CharacterService(IMapper mapper)
+        public CharacterService(IMapper mapper, DataContext dataContext, IHttpContextAccessor httpContextAccessor)
         {
             _mapper = mapper;
+            _dataContext = dataContext;
+            _httpContextAccessor = httpContextAccessor;
         }
+
+        private int GetUserId => int.Parse(_httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
 
         public async Task<ServiceResponse<List<GetCharacterDto>>> AddCharacter(AddCharacterDto character)
         {
             ServiceResponse<List<GetCharacterDto>> serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
-            Character newCharacters = _mapper.Map<Character>(character);
-            newCharacters.Id = characters.Max(c => c.Id) + 1;
-            characters.Add(newCharacters);
-            serviceResponse.Data =  characters.Select(x => _mapper.Map<GetCharacterDto>(x)).ToList();                    
+            try
+            {
+                Character newCharacters = _mapper.Map<Character>(character);
+                newCharacters.User = await _dataContext.Users.FirstOrDefaultAsync(x => x.Id == GetUserId);
+                await _dataContext.Characters.AddAsync(newCharacters);
+                await _dataContext.SaveChangesAsync();
+                serviceResponse.Data = _dataContext.Characters.Where(x => x.User.Id == GetUserId).Select(x => _mapper.Map<GetCharacterDto>(x)).ToList();
+            }
+            catch (Exception ex)
+            {
+                serviceResponse.Message = ex.Message;
+                serviceResponse.Success = false;
+            }
             return serviceResponse;
         }
 
         public async Task<ServiceResponse<List<GetCharacterDto>>> GetAllCharacter()
         {
             ServiceResponse<List<GetCharacterDto>> serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
+            var characters = await _dataContext.Characters.Where(x => x.User.Id == GetUserId).ToListAsync();
             serviceResponse.Data = characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
             return serviceResponse;
         }
@@ -43,7 +63,16 @@ namespace EFCoreRelationship.Services
         public async Task<ServiceResponse<GetCharacterDto>> GetCharacterById(int id)
         {
             ServiceResponse<GetCharacterDto> serviceResponse = new ServiceResponse<GetCharacterDto>();
-            serviceResponse.Data = _mapper.Map<GetCharacterDto>(characters.FirstOrDefault(x => x.Id == id)); 
+            try
+            {
+                var character = await _dataContext.Characters.FirstOrDefaultAsync(x => x.Id == id && x.User.Id == GetUserId);
+                serviceResponse.Data = _mapper.Map<GetCharacterDto>(character);
+            }
+            catch (Exception ex)
+            {
+                serviceResponse.Success = false;
+                serviceResponse.Message = ex.Message;
+            }
             return serviceResponse;
         }
 
@@ -65,7 +94,7 @@ namespace EFCoreRelationship.Services
             {
                 serviceResponse.Success = false;
                 serviceResponse.Message = ex.Message;
-            }                             
+            }
             return serviceResponse;
         }
 
@@ -75,14 +104,19 @@ namespace EFCoreRelationship.Services
             ServiceResponse<List<GetCharacterDto>> serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
             try
             {
-                var removeCharacter = characters.First(x => x.Id == id);
-                characters.Remove(removeCharacter);
-                serviceResponse.Data = characters.Select(x => _mapper.Map<GetCharacterDto>(x)).ToList();
+                var character = await _dataContext.Characters.FirstOrDefaultAsync(x => x.Id == id && x.User.Id == GetUserId);
+                if(character != null)
+                {
+                    _dataContext.Characters.Remove(character);
+                    await _dataContext.SaveChangesAsync();
+                    serviceResponse.Data = _dataContext.Characters.Where(x => x.User.Id == id).Select(x => _mapper.Map<GetCharacterDto>(x)).ToList();
+                }
+  
             }
             catch (Exception ex)
             {
                 serviceResponse.Success = false;
-                serviceResponse.Message=ex.Message;
+                serviceResponse.Message = ex.Message;
             }
             return serviceResponse;
         }
