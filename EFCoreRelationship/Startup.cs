@@ -1,6 +1,7 @@
 using EFCoreRelationship.Data;
 using EFCoreRelationship.Services.CharacterService;
 using EFCoreRelationship.Services.CharacterSkillService;
+using EFCoreRelationship.Services.FightService;
 using EFCoreRelationship.Services.WeaponService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -49,6 +50,7 @@ namespace EFCoreRelationship
             services.AddTransient<IAuthRepository, AuthRepository>();
             services.AddScoped<IWeaponService, WeaponService>();
             services.AddScoped<ICharacterSkillService, CharacterSkillService>();
+            services.AddScoped<IFightService, FightService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
