@@ -1,6 +1,7 @@
 using EFCoreRelationship.Data;
-using EFCoreRelationship.Services;
-using EFCoreRelationship.Services.Interface;
+using EFCoreRelationship.Services.CharacterService;
+using EFCoreRelationship.Services.CharacterSkillService;
+using EFCoreRelationship.Services.WeaponService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -29,8 +30,8 @@ namespace EFCoreRelationship
             services.AddDbContext<DataContext>(c => c.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
             services.AddControllers();
             services.AddAutoMapper(typeof(Startup));
-            services.AddScoped<ICharacterService, CharacterService>();
-            services.AddTransient<IAuthRepository, AuthRepository>();
+
+
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
@@ -42,7 +43,12 @@ namespace EFCoreRelationship
                         ValidateAudience = false
                     };
                 });
+
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddScoped<ICharacterService, CharacterService>();
+            services.AddTransient<IAuthRepository, AuthRepository>();
+            services.AddScoped<IWeaponService, WeaponService>();
+            services.AddScoped<ICharacterSkillService, CharacterSkillService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

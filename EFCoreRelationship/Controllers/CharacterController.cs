@@ -1,5 +1,5 @@
 ﻿using EFCoreRelationship.DTO.Character;
-using EFCoreRelationship.Services.Interface;
+using EFCoreRelationship.Services.CharacterService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
@@ -20,6 +20,7 @@ namespace EFCoreRelationship.Controllers
             _characterService = characterService;
         }
 
+        //[AllowAnonymous]
         [HttpGet("GetAll")]
         public async Task<IActionResult> Get()
         {

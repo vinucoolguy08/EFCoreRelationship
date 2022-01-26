@@ -3,7 +3,7 @@ using EFCoreRelationship.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace EFCoreRelationship.Services.Interface
+namespace EFCoreRelationship.Services.CharacterService
 {
     public interface ICharacterService
     {

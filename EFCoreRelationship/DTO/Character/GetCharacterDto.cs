@@ -1,4 +1,7 @@
-﻿using EFCoreRelationship.Models;
+﻿using EFCoreRelationship.DTO.Skill;
+using EFCoreRelationship.DTO.Weapon;
+using EFCoreRelationship.Models;
+using System.Collections.Generic;
 
 namespace EFCoreRelationship.DTO.Character
 {
@@ -11,5 +14,7 @@ namespace EFCoreRelationship.DTO.Character
         public int Defence { get; set; } = 10;
         public int Intelligence { get; set; } = 10;
         public RPG RPGClass { get; set; } = RPG.Knight;
+        public GetWeaponDto Weapon { get; set; }
+        public List<GetSkillDto> Skills { get; set; }
     }
 }

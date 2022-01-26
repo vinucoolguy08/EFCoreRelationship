@@ -2,7 +2,6 @@
 using EFCoreRelationship.Data;
 using EFCoreRelationship.DTO.Character;
 using EFCoreRelationship.Models;
-using EFCoreRelationship.Services.Interface;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -11,7 +10,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace EFCoreRelationship.Services
+namespace EFCoreRelationship.Services.CharacterService
 {
     public class CharacterService : ICharacterService
     {
@@ -81,7 +80,12 @@ namespace EFCoreRelationship.Services
             ServiceResponse<GetCharacterDto> serviceResponse = new ServiceResponse<GetCharacterDto>();
             try
             {
-                Character characterDetail = characters.Find(x => x.Id == character.Id);
+                Character characterDetail = _dataContext.Characters.Include(c => c.User).FirstOrDefault(x => x.Id == character.Id && x.User.Id == GetUserId);
+                if(characterDetail == null)
+                {
+                    serviceResponse.Success = false;
+                    serviceResponse.Message = "Character Not Found";                    
+                }
                 characterDetail.Name = character.Name;
                 characterDetail.HitPoint = character.HitPoint;
                 characterDetail.Strength = character.Strength;
@@ -111,7 +115,11 @@ namespace EFCoreRelationship.Services
                     await _dataContext.SaveChangesAsync();
                     serviceResponse.Data = _dataContext.Characters.Where(x => x.User.Id == id).Select(x => _mapper.Map<GetCharacterDto>(x)).ToList();
                 }
-  
+                else
+                {
+                    serviceResponse.Success = false;
+                    serviceResponse.Message = "Character Not Found";
+                }
             }
             catch (Exception ex)
             {
